@@ -77,7 +77,7 @@ cp ionos-vms.env my-env.env
 |----------------------|----------------------------------------------------------|
 | `IONOS_TOKEN`        | Token bearer de la API de IONOS Cloud                    |
 | `IONOS_DATACENTER_ID`| ID del datacenter de destino                             |
-| `VM_IDS`             | IDs de servidores separados por comas (scripts por lotes)|
+| `VM_NAMES`           | Nombres de VMs separados por comas (scripts por lotes)   |
 
 **Cómo obtener tus credenciales:**
 - Token de API: Consola de IONOS Cloud → Menú → Claves API
@@ -105,7 +105,8 @@ Busca la VM por su nombre en el datacenter de IONOS Cloud.
 
 ### `vm-start.sh` — Encender todas las VMs del archivo env
 
-Itera sobre todos los IDs de servidor listados en `VM_IDS` y envía una petición de inicio a cada uno.
+Itera sobre todos los nombres de VM listados en `VM_NAMES`, resuelve el UUID de cada una
+consultando la API y envía una petición de inicio.
 
 ```bash
 ./vm-start.sh [archivo-env]
@@ -113,7 +114,8 @@ Itera sobre todos los IDs de servidor listados en `VM_IDS` y envía una petició
 
 ### `vm-stop.sh` — Apagar todas las VMs del archivo env
 
-Envía un apagado ACPI graceful a todos los IDs de servidor listados en `VM_IDS`.
+Itera sobre todos los nombres de VM listados en `VM_NAMES`, resuelve el UUID de cada una
+consultando la API y envía un apagado ACPI graceful.
 Pasa `force` como segundo argumento para cortar la alimentación inmediatamente.
 
 ```bash

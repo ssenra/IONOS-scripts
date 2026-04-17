@@ -15,7 +15,7 @@ source "$ENV_FILE"
 
 : "${IONOS_TOKEN:?IONOS_TOKEN no está definido en $ENV_FILE}"
 : "${IONOS_DATACENTER_ID:?IONOS_DATACENTER_ID no está definido en $ENV_FILE}"
-: "${VM_IDS:?VM_IDS no está definido en $ENV_FILE}"
+: "${VM_NAMES:?VM_NAMES no está definido en $ENV_FILE}"
 
 API_BASE="https://api.ionos.com/cloudapi/v6"
 AUTH_HEADER="Authorization: Bearer ${IONOS_TOKEN}"
@@ -29,13 +29,31 @@ else
   echo "Modo: apagado graceful (señal ACPI)"
 fi
 
-IFS=',' read -ra SERVERS <<< "$VM_IDS"
+IFS=',' read -ra SERVERS <<< "$VM_NAMES"
 
-for server_id in "${SERVERS[@]}"; do
-  server_id="${server_id// /}"  # eliminar espacios en blanco
-  [[ -z "$server_id" ]] && continue
+for vm_name in "${SERVERS[@]}"; do
+  vm_name="${vm_name// /}"  # eliminar espacios en blanco
+  [[ -z "$vm_name" ]] && continue
 
-  echo "Apagando VM: $server_id ..."
+  echo "Buscando UUID de '$vm_name' ..."
+  server_id=$(curl -s \
+    -H "$AUTH_HEADER" \
+    "${API_BASE}/datacenters/${IONOS_DATACENTER_ID}/servers?depth=1" \
+    | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+target = sys.argv[1]
+for s in data.get('items', []):
+    if s.get('properties', {}).get('name', '') == target:
+        print(s['id'])
+        sys.exit(0)
+sys.exit(1)
+" "$vm_name") || {
+    echo "  -> Error: VM '$vm_name' no encontrada en el datacenter." >&2
+    continue
+  }
+
+  echo "Apagando VM '$vm_name' (UUID: $server_id) ..."
   response=$(curl -s -o /dev/null -w "%{http_code}" \
     -X POST \
     -H "$AUTH_HEADER" \
@@ -43,8 +61,8 @@ for server_id in "${SERVERS[@]}"; do
     "${API_BASE}/datacenters/${IONOS_DATACENTER_ID}/servers/${server_id}/${ACTION}")
 
   if [[ "$response" == "202" ]]; then
-    echo "  -> Solicitud de apagado de VM $server_id aceptada (202)."
+    echo "  -> Solicitud de apagado de VM '$vm_name' aceptada (202)."
   else
-    echo "  -> Error al apagar la VM $server_id (HTTP $response)." >&2
+    echo "  -> Error al apagar la VM '$vm_name' (HTTP $response)." >&2
   fi
 done
