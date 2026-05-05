@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ENV_FILE="${1:-ionos-vms.env}"
-FORCE="${2:-}"  # pasar "force" como segundo argumento para cortar la alimentación en lugar de apagado graceful
+FORCE="${2:-}"  # pasar "force" como segundo argumento para cortar la alimentación
 
 if [[ ! -f "$ENV_FILE" ]]; then
   echo "Error: archivo env '$ENV_FILE' no encontrado." >&2
@@ -20,13 +20,12 @@ source "$ENV_FILE"
 API_BASE="https://api.ionos.com/cloudapi/v6"
 AUTH_HEADER="Authorization: Bearer ${IONOS_TOKEN}"
 
-# "stop" envía apagado ACPI (graceful); "poweroff" corta la alimentación inmediatamente
 ACTION="stop"
 if [[ "${FORCE,,}" == "force" ]]; then
   ACTION="poweroff"
-  echo "Modo: corte de alimentación forzado (sin apagado graceful)"
+  echo "Modo: corte de alimentación forzado"
 else
-  echo "Modo: apagado graceful (señal ACPI)"
+  echo "Modo: apagado"
 fi
 
 IFS=',' read -ra SERVERS <<< "$VM_NAMES"

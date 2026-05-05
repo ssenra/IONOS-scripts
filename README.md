@@ -115,11 +115,11 @@ consultando la API y envía una petición de inicio.
 ### `vm-stop.sh` — Apagar todas las VMs del archivo env
 
 Itera sobre todos los nombres de VM listados en `VM_NAMES`, resuelve el UUID de cada una
-consultando la API y envía un apagado ACPI graceful.
+consultando la API y envía una petición de apagado.
 Pasa `force` como segundo argumento para cortar la alimentación inmediatamente.
 
 ```bash
-# Apagado graceful (por defecto)
+# Apagado (por defecto)
 ./vm-stop.sh [archivo-env]
 
 # Corte de alimentación forzado
@@ -130,4 +130,4 @@ Pasa `force` como segundo argumento para cortar la alimentación inmediatamente.
 
 - Todos los scripts usan `ionos-vms.env` en el directorio actual por defecto si no se especifica un archivo env.
 - Las llamadas a la API devuelven HTTP `202 Accepted` en caso de éxito; el cambio de estado real ocurre de forma asíncrona en el lado de IONOS.
-- `vm-stop.sh` usa la acción `stop` de IONOS (señal ACPI) por defecto, lo que permite al sistema operativo invitado apagarse correctamente. La opción `force` usa `poweroff`, equivalente a desenchufar el cable de alimentación.
+- `vm-stop.sh` usa la acción `stop` de IONOS por defecto. La opción `force` usa `poweroff`, equivalente a desenchufar el cable de alimentación.
